@@ -8,7 +8,7 @@ pub enum OpCode {
 pub struct Chunk {
     pub code: Vec<u8>,
     lines: Vec<usize>,
-    constants: ValueArray,
+    pub constants: ValueArray,
 }
 
 impl Chunk {
@@ -25,8 +25,12 @@ impl Chunk {
         self.lines.push(line);
     }
 
+    pub fn read(&self, offset: usize) -> u8 {
+        self.code[offset]
+    }
+
     pub fn write_opcode(&mut self, opcode: OpCode, line: usize) {
-        self.code.push(opcode as u8);
+        self.code.push(opcode.into());
         self.lines.push(line);
     }
 
@@ -53,7 +57,7 @@ impl Chunk {
     fn disassemble_instruction(&self, offset: usize) -> usize {
         print!("{:04} ", offset);
 
-        if offset > 0 && self.lines[offset] == self.lines[offset - 1]{
+        if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
             print!("   | ");
         } else {
             print!("{:4} ", self.lines[offset]);
@@ -78,8 +82,28 @@ impl Chunk {
     fn constant_instruction(&self, name: &str, offset: usize) -> usize {
         let constant = self.code[offset + 1];
         print!("{:<16} {:4} '", name, constant);
-        self.constants.print_value(constant as usize);
+        self.constants.print_value(constant.into());
         println!("'");
         offset + 2
+    }
+
+    pub fn get_constant(&self, index: u8) -> Value {
+        self.constants.values[index as usize]
+    }
+}
+
+impl From<u8> for OpCode {
+    fn from(byte: u8) -> Self {
+        match byte {
+            0 => OpCode::OpConstant,
+            1 => OpCode::OpReturn,
+            _ => panic!("Unknown opcode {}", byte),
+        }
+    }
+}
+
+impl From<OpCode> for u8 {
+    fn from(opcode: OpCode) -> Self {
+        opcode as u8
     }
 }
