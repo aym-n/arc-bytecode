@@ -13,6 +13,14 @@ pub enum InterpretResult {
     // RuntimeError,
 }
 
+macro_rules! BinaryOp {
+    ($self:ident, $op:tt) => {
+        let b = $self.stack.pop().unwrap();
+        let a = $self.stack.pop().unwrap();
+        $self.stack.push(a $op b);
+    };
+}
+
 impl VM {
     pub fn new() -> Self {
         Self {
@@ -53,6 +61,27 @@ impl VM {
                     let constant = self.read_constant(chunk);
                     self.stack.push(constant);
                 }
+                OpCode::OpNegate => {
+                    let value = self.stack.pop().unwrap();
+                    self.stack.push(-value);
+                }
+                OpCode::OpAdd => {
+                    BinaryOp!(self, +);
+                }
+
+                OpCode::OpSubtract => {
+                    BinaryOp!(self, -);
+                }
+
+                OpCode::OpMultiply => {
+                    BinaryOp!(self, *);
+                }
+
+                OpCode::OpDivide => {
+                    BinaryOp!(self, /);
+                }
+
+                _ => panic!("Unknown opcode"),
             }
         }
     }

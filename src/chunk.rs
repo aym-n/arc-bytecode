@@ -3,6 +3,11 @@ use crate::value::*;
 pub enum OpCode {
     OpConstant,
     OpReturn,
+    OpNegate,
+    OpAdd,
+    OpSubtract,
+    OpMultiply,
+    OpDivide,
 }
 
 pub struct Chunk {
@@ -54,7 +59,7 @@ impl Chunk {
         }
     }
 
-    fn disassemble_instruction(&self, offset: usize) -> usize {
+    pub fn disassemble_instruction(&self, offset: usize) -> usize {
         print!("{:04} ", offset);
 
         if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
@@ -67,6 +72,11 @@ impl Chunk {
         match instruction {
             0 => self.constant_instruction("OpConstant", offset),
             1 => self.simple_instruction("OpReturn", offset),
+            2 => self.simple_instruction("OpNegate", offset),
+            3 => self.simple_instruction("OpAdd", offset),
+            4 => self.simple_instruction("OpSubtract", offset),
+            5 => self.simple_instruction("OpMultiply", offset),
+            6 => self.simple_instruction("OpDivide", offset),
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1
@@ -97,6 +107,11 @@ impl From<u8> for OpCode {
         match byte {
             0 => OpCode::OpConstant,
             1 => OpCode::OpReturn,
+            2 => OpCode::OpNegate,
+            3 => OpCode::OpAdd,
+            4 => OpCode::OpSubtract,
+            5 => OpCode::OpMultiply,
+            6 => OpCode::OpDivide,
             _ => panic!("Unknown opcode {}", byte),
         }
     }

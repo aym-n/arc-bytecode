@@ -13,8 +13,20 @@ fn main() {
     chunk.write_opcode(OpCode::OpConstant, 123);
     chunk.write(constant, 123);
 
-    chunk.write(OpCode::OpReturn as u8, 123);
-    chunk.disassemble("test chunk");
+    let constant = chunk.add_constant(3.4);
+    chunk.write_opcode(OpCode::OpConstant, 123);
+    chunk.write(constant, 123);
+
+    chunk.write_opcode(OpCode::OpAdd, 123);
+    
+    let constant = chunk.add_constant(5.6);
+    chunk.write_opcode(OpCode::OpConstant, 123);
+    chunk.write(constant, 123);
+
+    chunk.write_opcode(OpCode::OpDivide, 123);
+
+    chunk.write_opcode(OpCode::OpReturn, 123);
+
     vm.interpret(&chunk);
 
     chunk.free();
