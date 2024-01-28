@@ -4,6 +4,7 @@ use crate::value::*;
 pub struct VM {
     chunk: Chunk,
     ip: usize,
+    stack: Vec<Value>, // Stacks are implemented as Vecs in Rust
 }
 
 pub enum InterpretResult {
@@ -17,6 +18,7 @@ impl VM {
         Self {
             chunk: Chunk::new(),
             ip: 0,
+            stack: Vec::new(),
         }
     }
 
@@ -32,16 +34,24 @@ impl VM {
     fn run(&mut self, chunk: &Chunk) -> InterpretResult {
         loop {
             #[cfg(feature = "debug_trace_execution")]
-            chunk.disassemble_instruction(self.ip);
+            {
+                print!("          ");
+                for slot in &self.stack {
+                    print!("[ {} ]", slot);
+                }
+                println!();
+                chunk.disassemble_instruction(self.ip);
+            }
 
             let instruction = self.read_byte(chunk);
             match instruction {
                 OpCode::OpReturn => {
+                    println!("{}", self.stack.pop().unwrap());
                     return InterpretResult::Ok;
                 }
                 OpCode::OpConstant => {
                     let constant = self.read_constant(chunk);
-                    print!("{}", constant);
+                    self.stack.push(constant);
                 }
             }
         }
