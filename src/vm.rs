@@ -1,6 +1,6 @@
 use crate::chunk::*;
 use crate::value::*;
-
+use crate::complier::*;
 pub struct VM {
     chunk: Chunk,
     ip: usize,
@@ -9,8 +9,8 @@ pub struct VM {
 
 pub enum InterpretResult {
     Ok,
-    // CompileError,
-    // RuntimeError,
+    CompileError,
+    RuntimeError,
 }
 
 macro_rules! BinaryOp {
@@ -34,9 +34,9 @@ impl VM {
         self.chunk.free();
     }
 
-    pub fn interpret(&mut self, chunk: &Chunk) -> InterpretResult {
-        self.ip = 0;
-        self.run(&chunk)
+    pub fn interpret(&mut self, source: String) -> InterpretResult {
+        compile(source);
+        return InterpretResult::Ok;
     }
 
     fn run(&mut self, chunk: &Chunk) -> InterpretResult {

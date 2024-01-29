@@ -1,34 +1,41 @@
 mod chunk;
-use chunk::*;
-
+mod complier;
+mod scanner;
+mod value;
 mod vm;
 
-mod value;
+use vm::*;
 
+fn repl(vm: &mut vm::VM) {
+    loop {
+        let mut input = String::new();
+        print!("arc~> ");
+        std::io::stdin().read_line(&mut input).unwrap();
+        input = input.trim_end_matches('\n').to_string();
+
+        vm.interpret(input);
+    }
+}
+
+fn eval(source: &str) {
+    let mut vm = vm::VM::new();
+    match vm.interpret(source.to_string()) {
+        InterpretResult::CompileError => std::process::exit(65),
+        InterpretResult::RuntimeError => std::process::exit(70),
+        _ => (),
+    }
+}
 fn main() {
     let mut vm = vm::VM::new();
-    let mut chunk = Chunk::new();
-
-    let constant = chunk.add_constant(1.2);
-    chunk.write_opcode(OpCode::OpConstant, 123);
-    chunk.write(constant, 123);
-
-    let constant = chunk.add_constant(3.4);
-    chunk.write_opcode(OpCode::OpConstant, 123);
-    chunk.write(constant, 123);
-
-    chunk.write_opcode(OpCode::OpAdd, 123);
-    
-    let constant = chunk.add_constant(5.6);
-    chunk.write_opcode(OpCode::OpConstant, 123);
-    chunk.write(constant, 123);
-
-    chunk.write_opcode(OpCode::OpDivide, 123);
-
-    chunk.write_opcode(OpCode::OpReturn, 123);
-
-    vm.interpret(&chunk);
-
-    chunk.free();
+    match std::env::args().len() {
+        1 => repl(&mut vm),
+        2 => {
+            let args: Vec<String> = std::env::args().collect();
+            let filename = &args[1];
+            let source = std::fs::read_to_string(filename).unwrap();
+            let _ = eval(&source);
+        }
+        _ => println!("Usage: arc [path]"),
+    }
     vm.free();
 }
