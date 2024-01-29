@@ -15,12 +15,11 @@ impl Scanner {
         }
     }
 
-    pub fn scan_token(&mut self) -> Token{
-
+    pub fn scan_token(&mut self) -> Token {
         self.skip_whitespace();
 
         self.start = self.current;
-        
+
         if self.is_at_end() {
             return Token::new(TokenType::EOF, self);
         }
@@ -42,7 +41,7 @@ impl Scanner {
             '!' => {
                 if self.match_char('=') {
                     return Token::new(TokenType::BangEqual, self);
-                }else{
+                } else {
                     return Token::new(TokenType::Bang, self);
                 }
             }
@@ -50,7 +49,7 @@ impl Scanner {
             '=' => {
                 if self.match_char('=') {
                     return Token::new(TokenType::EqualEqual, self);
-                }else{
+                } else {
                     return Token::new(TokenType::Equal, self);
                 }
             }
@@ -58,7 +57,7 @@ impl Scanner {
             '<' => {
                 if self.match_char('=') {
                     return Token::new(TokenType::LessEqual, self);
-                }else{
+                } else {
                     return Token::new(TokenType::Less, self);
                 }
             }
@@ -66,7 +65,7 @@ impl Scanner {
             '>' => {
                 if self.match_char('=') {
                     return Token::new(TokenType::GreaterEqual, self);
-                }else{
+                } else {
                     return Token::new(TokenType::Greater, self);
                 }
             }
@@ -90,7 +89,7 @@ impl Scanner {
             '0'..='9' => {
                 while self.peek().is_digit(10) {
                     self.advance();
-                    
+
                     if self.peek() == '.' && self.peek_next().is_digit(10) {
                         self.advance();
 
@@ -103,7 +102,14 @@ impl Scanner {
                 return Token::new(TokenType::Number, self);
             }
 
-            _ =>  return Token::error_token("Unexpected character.", self),
+            'a'..='z' | 'A'..='Z' | '_' => {
+                while self.peek().is_alphanumeric() {
+                    self.advance();
+                }
+
+                return Token::new(self.identifier_type(), self);
+            }
+            _ => return Token::error_token("Unexpected character.", self),
         }
     }
 
@@ -125,13 +131,13 @@ impl Scanner {
         true
     }
 
-    fn skip_whitespace(&mut self){
+    fn skip_whitespace(&mut self) {
         loop {
             let c = self.peek();
             match c {
                 ' ' | '\r' | '\t' => {
                     self.advance();
-                },
+                }
                 '\n' => {
                     self.line += 1;
                     self.advance();
@@ -141,7 +147,7 @@ impl Scanner {
                         while self.peek() != '\n' && !self.is_at_end() {
                             self.advance();
                         }
-                    }else{
+                    } else {
                         return;
                     }
                 }
@@ -161,8 +167,60 @@ impl Scanner {
         self.source.chars().nth(self.current).unwrap()
     }
 
+    fn identifier_type(&mut self) -> TokenType {
+        match self.source.chars().nth(self.start).unwrap() {
+            'a' => return self.check_keyword(1, 2, "nd", TokenType::And),
+            'c' => return self.check_keyword(1, 4, "lass", TokenType::Class),
+            'e' => return self.check_keyword(1, 3, "lse", TokenType::Else),
+            'f' => {
+                if self.current - self.start > 1 {
+                    match self.source.chars().nth(self.start + 1).unwrap() {
+                        'a' => return self.check_keyword(2, 3, "lse", TokenType::False),
+                        'n' => return self.check_keyword(2, 1, "n", TokenType::Fn),
+                        'o' => return self.check_keyword(2, 1, "r", TokenType::For),
+                        _ => return TokenType::Identifier,
+                    }
+                } else {
+                    return TokenType::Identifier;
+                }
+            }
+            'i' => return self.check_keyword(1, 1, "f", TokenType::If),
+            'n' => return self.check_keyword(1, 2, "il", TokenType::Nil),
+            'o' => return self.check_keyword(1, 1, "r", TokenType::Or),
+            'p' => return self.check_keyword(1, 4, "rint", TokenType::Print),
+            'r' => return self.check_keyword(1, 5, "eturn", TokenType::Return),
+            's' => return self.check_keyword(1, 4, "uper", TokenType::Super),
+            't' = {
+                if self.current - self.start > 1 {
+                    match self.source.chars().nth(self.start + 1).unwrap() {
+                        'h' => return self.check_keyword(2, 2, "is", TokenType::This),
+                        'r' => return self.check_keyword(2, 2, "ue", TokenType::True),
+                        _ => return TokenType::Identifier,
+                    }
+                } else {
+                    return TokenType::Identifier;
+                }
+            }
+            'v' => return self.check_keyword(1, 2, "ar", TokenType::Var),
+            'w' => return self.check_keyword(1, 4, "hile", TokenType::While),
+            _ => return TokenType::Identifier,
+        }
+    }
 
-
+    fn check_keyword(
+        &mut self,
+        start: usize,
+        length: usize,
+        rest: &str,
+        token_type: TokenType,
+    ) -> TokenType {
+        if self.current - self.start == start + length
+            && self.source[self.start + start..self.start + start + length].eq(rest)
+        {
+            return token_type;
+        }
+        TokenType::Identifier
+    }
 }
 
 pub struct Token {
@@ -180,24 +238,50 @@ impl PartialEq for Token {
 
 #[derive(PartialEq, Debug)]
 pub enum TokenType {
-    LeftParen, RightParen,
-    LeftBrace, RightBrace,
-    Comma, Dot, Minus, Plus,
-    Semicolon, Slash, Star,
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
+    Comma,
+    Dot,
+    Minus,
+    Plus,
+    Semicolon,
+    Slash,
+    Star,
 
-    Bang, BangEqual,
-    Equal, EqualEqual,
-    Greater, GreaterEqual,
-    Less, LessEqual,
+    Bang,
+    BangEqual,
+    Equal,
+    EqualEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
 
-    Identifier, String, Number,
+    Identifier,
+    String,
+    Number,
 
-    And, Class, Else, False,
-    Fn, For, If, Nil, Or,
-    Print, Return, Super, This,
-    True, Var, While,
+    And,
+    Class,
+    Else,
+    False,
+    Fn,
+    For,
+    If,
+    Nil,
+    Or,
+    Print,
+    Return,
+    Super,
+    This,
+    True,
+    Var,
+    While,
 
-    Error, EOF,
+    Error,
+    EOF,
 }
 
 impl std::fmt::Display for TokenType {
@@ -207,7 +291,7 @@ impl std::fmt::Display for TokenType {
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, scanner:&mut Scanner) -> Self {
+    pub fn new(token_type: TokenType, scanner: &mut Scanner) -> Self {
         Self {
             token_type,
             start: scanner.start,
