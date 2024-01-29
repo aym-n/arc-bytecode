@@ -7,13 +7,24 @@ mod vm;
 use vm::*;
 
 fn repl(vm: &mut vm::VM) {
+    println!(
+        r#" 
+        █████╗ ██████╗  ██████╗
+        ██╔══██╗██╔══██╗██╔════╝
+        ███████║██████╔╝██║     
+        ██╔══██║██╔══██╗██║     
+        ██║  ██║██║  ██║╚██████╗
+        ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ 
+                [v1.1.0]
+        "#
+    ); 
     loop {
-        let mut input = String::new();
         print!("arc~> ");
+        let mut input = String::new();
         std::io::stdin().read_line(&mut input).unwrap();
         input = input.trim_end_matches('\n').to_string();
 
-        vm.interpret(input);
+        //vm.interpret(input);
     }
 }
 

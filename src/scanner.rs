@@ -2,7 +2,7 @@ pub struct Scanner {
     source: String,
     start: usize,
     current: usize,
-    line: usize,
+    pub line: usize,
 }
 
 impl Scanner {
@@ -31,12 +31,19 @@ impl Scanner {
 }
 
 pub struct Token {
-    token_type: TokenType,
-    start: usize,
-    length: usize,
-    line: usize,
+    pub token_type: TokenType,
+    pub start: usize,
+    pub length: usize,
+    pub line: usize,
 }
 
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        self.token_type == other.token_type
+    }
+}
+
+#[derive(PartialEq, Debug)]
 pub enum TokenType {
     LeftParen, RightParen,
     LeftBrace, RightBrace,
@@ -56,6 +63,12 @@ pub enum TokenType {
     True, Var, While,
 
     Error, EOF,
+}
+
+impl std::fmt::Display for TokenType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?} ", self)
+    }
 }
 
 impl Token {
