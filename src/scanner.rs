@@ -113,7 +113,7 @@ impl Scanner {
         }
     }
 
-    fn advance(&mut self) -> char {
+    pub fn advance(&mut self) -> char {
         let c = self.source.chars().nth(self.current).unwrap();
         self.current += 1;
         c

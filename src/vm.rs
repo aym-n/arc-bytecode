@@ -1,6 +1,6 @@
 use crate::chunk::*;
 use crate::value::*;
-use crate::complier::*;
+use crate::compiler::*;
 pub struct VM {
     chunk: Chunk,
     ip: usize,
@@ -35,8 +35,10 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: String) -> InterpretResult {
-        compile(source);
-        return InterpretResult::Ok;
+        match compile(source){
+            true => self.run(&self.chunk),
+            false => InterpretResult::CompileError,
+        }
     }
 
     fn run(&mut self, chunk: &Chunk) -> InterpretResult {

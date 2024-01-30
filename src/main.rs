@@ -1,5 +1,5 @@
 mod chunk;
-mod complier;
+mod compiler;
 mod scanner;
 mod value;
 mod vm;
