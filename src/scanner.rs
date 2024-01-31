@@ -1,5 +1,5 @@
 pub struct Scanner {
-    source: String,
+    pub source: String,
     start: usize,
     current: usize,
     pub line: usize,
@@ -190,7 +190,7 @@ impl Scanner {
             'p' => return self.check_keyword(1, 4, "rint", TokenType::Print),
             'r' => return self.check_keyword(1, 5, "eturn", TokenType::Return),
             's' => return self.check_keyword(1, 4, "uper", TokenType::Super),
-            't' = {
+            't' => {
                 if self.current - self.start > 1 {
                     match self.source.chars().nth(self.start + 1).unwrap() {
                         'h' => return self.check_keyword(2, 2, "is", TokenType::This),
@@ -230,13 +230,24 @@ pub struct Token {
     pub line: usize,
 }
 
+impl Clone for Token {
+    fn clone(&self) -> Self {
+        Self {
+            token_type: self.token_type.clone(),
+            start: self.start.clone(),
+            length: self.length.clone(),
+            line: self.line.clone(),
+        }
+    }
+}
+
 impl PartialEq for Token {
     fn eq(&self, other: &Self) -> bool {
         self.token_type == other.token_type
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -282,6 +293,19 @@ pub enum TokenType {
 
     Error,
     EOF,
+
+    Undefined,
+}
+
+impl Default for Token {
+    fn default() -> Self {
+        Self {
+            token_type: TokenType::Undefined,
+            start: 0,
+            length: 0,
+            line: 0,
+        }
+    }
 }
 
 impl std::fmt::Display for TokenType {

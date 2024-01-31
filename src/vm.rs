@@ -35,7 +35,8 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: String) -> InterpretResult {
-        match compile(source){
+        let mut compiler = Compiler::new();
+        match compiler.compile(source){
             true => self.run(&self.chunk),
             false => InterpretResult::CompileError,
         }
@@ -82,8 +83,6 @@ impl VM {
                 OpCode::OpDivide => {
                     BinaryOp!(self, /);
                 }
-
-                _ => panic!("Unknown opcode"),
             }
         }
     }
