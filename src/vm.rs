@@ -35,11 +35,11 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: String) -> InterpretResult {
-        let mut compiler = Compiler::new();
-        match compiler.compile(source){
-            true => self.run(&self.chunk),
-            false => InterpretResult::CompileError,
-        }
+        let mut chunk = Chunk::new();
+        let mut compiler = Compiler::new(&mut chunk);
+        compiler.compile(source);
+        self.ip = 0;
+        self.run(&chunk)
     }
 
     fn run(&mut self, chunk: &Chunk) -> InterpretResult {
