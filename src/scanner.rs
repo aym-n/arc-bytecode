@@ -1,3 +1,5 @@
+use crate::token::*;
+
 pub struct Scanner {
     pub source: String,
     start: usize,
@@ -21,52 +23,52 @@ impl Scanner {
         self.start = self.current;
 
         if self.is_at_end() {
-            return Token::new(TokenType::EOF, self);
+            return self.make_token(TokenType::EOF);
         }
 
         let c = self.advance();
         match c {
-            '(' => return Token::new(TokenType::LeftParen, self),
-            ')' => return Token::new(TokenType::RightParen, self),
-            '{' => return Token::new(TokenType::LeftBrace, self),
-            '}' => return Token::new(TokenType::RightBrace, self),
-            ';' => return Token::new(TokenType::Semicolon, self),
-            ',' => return Token::new(TokenType::Comma, self),
-            '.' => return Token::new(TokenType::Dot, self),
-            '-' => return Token::new(TokenType::Minus, self),
-            '+' => return Token::new(TokenType::Plus, self),
-            '/' => return Token::new(TokenType::Slash, self),
-            '*' => return Token::new(TokenType::Star, self),
+            '(' => return self.make_token(TokenType::LeftParen),
+            ')' => return self.make_token(TokenType::RightParen),
+            '{' => return self.make_token(TokenType::LeftBrace),
+            '}' => return self.make_token(TokenType::RightBrace),
+            ';' => return self.make_token(TokenType::Semicolon),
+            ',' => return self.make_token(TokenType::Comma),
+            '.' => return self.make_token(TokenType::Dot),
+            '-' => return self.make_token(TokenType::Minus),
+            '+' => return self.make_token(TokenType::Plus),
+            '/' => return self.make_token(TokenType::Slash),
+            '*' => return self.make_token(TokenType::Star),
 
             '!' => {
                 if self.match_char('=') {
-                    return Token::new(TokenType::BangEqual, self);
+                    return self.make_token(TokenType::BangEqual);
                 } else {
-                    return Token::new(TokenType::Bang, self);
+                    return self.make_token(TokenType::Bang);
                 }
             }
 
             '=' => {
                 if self.match_char('=') {
-                    return Token::new(TokenType::EqualEqual, self);
+                    return self.make_token(TokenType::EqualEqual);
                 } else {
-                    return Token::new(TokenType::Equal, self);
+                    return self.make_token(TokenType::Equal);
                 }
             }
 
             '<' => {
                 if self.match_char('=') {
-                    return Token::new(TokenType::LessEqual, self);
+                    return self.make_token(TokenType::LessEqual);
                 } else {
-                    return Token::new(TokenType::Less, self);
+                    return self.make_token(TokenType::Less);
                 }
             }
 
             '>' => {
                 if self.match_char('=') {
-                    return Token::new(TokenType::GreaterEqual, self);
+                    return self.make_token(TokenType::GreaterEqual);
                 } else {
-                    return Token::new(TokenType::Greater, self);
+                    return self.make_token(TokenType::Greater);
                 }
             }
 
@@ -79,11 +81,11 @@ impl Scanner {
                 }
 
                 if self.is_at_end() {
-                    return Token::error_token("Unterminated string.", self);
+                    return self.make_error("Unterminated string.");
                 }
 
                 self.advance();
-                return Token::new(TokenType::String, self);
+                return self.make_token(TokenType::String);
             }
 
             '0'..='9' => {
@@ -99,7 +101,7 @@ impl Scanner {
                     }
                 }
 
-                return Token::new(TokenType::Number, self);
+                return self.make_token(TokenType::Number);
             }
 
             'a'..='z' | 'A'..='Z' | '_' => {
@@ -107,9 +109,9 @@ impl Scanner {
                     self.advance();
                 }
 
-                return Token::new(self.identifier_type(), self);
+                return self.make_token(self.identifier_type());
             }
-            _ => return Token::error_token("Unexpected character.", self),
+            _ => return self.make_error("Unexpected character."),
         }
     }
 
@@ -167,7 +169,7 @@ impl Scanner {
         self.source.chars().nth(self.current).unwrap()
     }
 
-    fn identifier_type(&mut self) -> TokenType {
+    fn identifier_type(&self) -> TokenType {
         match self.source.chars().nth(self.start).unwrap() {
             'a' => return self.check_keyword(1, 2, "nd", TokenType::And),
             'c' => return self.check_keyword(1, 4, "lass", TokenType::Class),
@@ -208,12 +210,13 @@ impl Scanner {
     }
 
     fn check_keyword(
-        &mut self,
+        &self,
         start: usize,
         length: usize,
         rest: &str,
         token_type: TokenType,
     ) -> TokenType {
+        
         if self.current - self.start == start + length
             && self.source[self.start + start..self.start + start + length].eq(rest)
         {
@@ -221,115 +224,20 @@ impl Scanner {
         }
         TokenType::Identifier
     }
-}
 
-pub struct Token {
-    pub token_type: TokenType,
-    pub start: usize,
-    pub length: usize,
-    pub line: usize,
-}
-
-impl Clone for Token {
-    fn clone(&self) -> Self {
-        Self {
-            token_type: self.token_type.clone(),
-            start: self.start.clone(),
-            length: self.length.clone(),
-            line: self.line.clone(),
-        }
-    }
-}
-
-impl PartialEq for Token {
-    fn eq(&self, other: &Self) -> bool {
-        self.token_type == other.token_type
-    }
-}
-
-#[derive(PartialEq, Debug, Clone)]
-pub enum TokenType {
-    LeftParen,
-    RightParen,
-    LeftBrace,
-    RightBrace,
-    Comma,
-    Dot,
-    Minus,
-    Plus,
-    Semicolon,
-    Slash,
-    Star,
-
-    Bang,
-    BangEqual,
-    Equal,
-    EqualEqual,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-
-    Identifier,
-    String,
-    Number,
-
-    And,
-    Class,
-    Else,
-    False,
-    Fn,
-    For,
-    If,
-    Nil,
-    Or,
-    Print,
-    Return,
-    Super,
-    This,
-    True,
-    Var,
-    While,
-
-    Error,
-    EOF,
-
-    Undefined,
-}
-
-impl Default for Token {
-    fn default() -> Self {
-        Self {
-            token_type: TokenType::Undefined,
-            start: 0,
-            length: 0,
-            line: 0,
-        }
-    }
-}
-
-impl std::fmt::Display for TokenType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?} ", self)
-    }
-}
-
-impl Token {
-    pub fn new(token_type: TokenType, scanner: &mut Scanner) -> Self {
-        Self {
-            token_type,
-            start: scanner.start,
-            length: (scanner.current - scanner.start),
-            line: scanner.line,
+    fn make_token(&self, token_type: TokenType) -> Token {
+        Token {
+            token_type: token_type,
+            lexeme: self.source[self.start..self.current].to_string(),
+            line: self.line,
         }
     }
 
-    pub fn error_token(message: &str, scanner: &mut Scanner) -> Self {
-        Self {
+    fn make_error(&self, message: &str) -> Token {
+        Token {
             token_type: TokenType::Error,
-            start: 0,
-            length: message.len(),
-            line: scanner.line,
+            lexeme: message.to_string(),
+            line: self.line,
         }
     }
 }

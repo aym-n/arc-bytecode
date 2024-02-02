@@ -3,6 +3,7 @@ mod compiler;
 mod scanner;
 mod value;
 mod vm;
+mod token;
 
 use vm::*;
 

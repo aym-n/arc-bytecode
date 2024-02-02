@@ -1,7 +1,7 @@
-use crate::chunk;
 use crate::scanner::*;
 use crate::chunk::*;
 use std::cell::RefCell;
+use crate::token::*;
 
 pub struct Compiler<'a> {
     parser: Parser,
@@ -40,7 +40,8 @@ impl <'a> Compiler<'a> {
             if self.parser.current.token_type != TokenType::Error {
                 break;
             }
-            self.error_at_current(&self.scanner.source[self.parser.current.start..self.parser.current.length]);
+            let message = self.parser.current.lexeme.as_str();
+            self.error_at_current(&message);
         }
     }
 
@@ -72,7 +73,7 @@ impl <'a> Compiler<'a> {
         } else if token.token_type == TokenType::Error {
             // Nothing.
         } else {
-            eprint!(" at {}", self.scanner.source[token.start..token.length].to_string());
+            eprint!(" at {}", token.lexeme);
         }
 
         eprintln!(": {}", message);
