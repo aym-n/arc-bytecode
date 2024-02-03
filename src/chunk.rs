@@ -44,10 +44,9 @@ impl Chunk {
         self.constants.free();
     }
 
-    pub fn add_constant(&mut self, value: Value) -> u8 {
-        let index = self.constants.values.len() as u8;
-        self.constants.write(value);
-        index
+    pub fn add_constant(&mut self, value: Value) -> Option<u8> {
+        let index = self.constants.write(value);
+        u8::try_from(index).ok()
     }
 
     pub fn disassemble(&self, name: &str) {

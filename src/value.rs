@@ -9,8 +9,10 @@ impl ValueArray {
         Self { values: Vec::new() }
     }
 
-    pub fn write(&mut self, value: Value) {
+    pub fn write(&mut self, value: Value) -> usize {
+        let index = self.values.len();
         self.values.push(value);
+        index
     }
 
     pub fn free(&mut self) {

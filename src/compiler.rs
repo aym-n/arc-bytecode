@@ -1,12 +1,13 @@
-use crate::scanner::*;
 use crate::chunk::*;
-use std::cell::RefCell;
+use crate::scanner::*;
 use crate::token::*;
+use crate::value::*;
+use std::cell::RefCell;
 
 pub struct Compiler<'a> {
     parser: Parser,
     scanner: Scanner,
-    chunk: &'a  mut Chunk,
+    chunk: &'a mut Chunk,
 }
 #[derive(Default)]
 pub struct Parser {
@@ -16,7 +17,22 @@ pub struct Parser {
     panic_mode: RefCell<bool>,
 }
 
-impl <'a> Compiler<'a> {
+#[derive(PartialEq, PartialOrd)]
+pub enum Precedence {
+    None = 0,
+    Assignment, // =
+    Or,        // or
+    And,      // and
+    Equality, // == !=
+    Comparison, // < > <= >=
+    Term,     // + -
+    Factor,  // * /
+    Unary, // ! -
+    Call, // . ()
+    Primary, 
+}
+
+impl<'a> Compiler<'a> {
     pub fn new(chunk: &'a mut Chunk) -> Self {
         Self {
             parser: Parser::default(),
@@ -57,11 +73,51 @@ impl <'a> Compiler<'a> {
         self.emit_return();
     }
 
+    fn grouping(&mut self) {
+        self.expression();
+        self.consume(TokenType::RightParen, "Expect ')' after expression.");
+    }
+
+    fn unary(&mut self) {
+        let operator_type = self.parser.previous.token_type.clone();
+        
+        self.parse_precedence(Precedence::Unary);
+
+        match operator_type {
+            TokenType::Minus => self.emit_byte(OpCode::OpNegate.into()),
+            _ => {}
+        }
+    }
+    fn parse_precedence(&mut self, precedence: Precedence) {
+        unimplemented!()
+    }
+    fn expression(&mut self) {
+        self.parse_precedence(Precedence::Assignment);
+    }
+
+    fn number(&mut self) {
+        let value = self.parser.previous.lexeme.parse::<f64>().unwrap();
+        self.emit_constant(value);
+    }
+
+    fn emit_constant(&mut self, value: Value) {
+        let constant = self.make_constant(value);
+        self.emit_bytes(OpCode::OpConstant, constant);
+    }
+
+    fn make_constant(&mut self, value: Value) -> u8 {
+        if let Some(constant) = self.chunk.add_constant(value) {
+            constant
+        } else {
+            self.error("Too many constants in one chunk.");
+            0
+        }
+    }
+
     fn emit_return(&mut self) {
         self.emit_byte(OpCode::OpReturn.into());
     }
-    fn error_at(&self, token: &Token, message: &str){
-
+    fn error_at(&self, token: &Token, message: &str) {
         if *self.parser.panic_mode.borrow() {
             return;
         }
