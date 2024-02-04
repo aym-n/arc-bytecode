@@ -136,6 +136,21 @@ impl<'a> Compiler<'a> {
         self.parser.had_error.replace(true);
     }
 
+    fn binary(&mut self){
+        let operator_type = self.parser.previous.token_type;
+        let rule = self.get_rule(&operator_type);
+
+        self.parse_precedence(rule.precedence.next());
+
+        match operator_type {
+            TokenType::Plus => self.emit_byte(OpCode::OpAdd.into()),
+            TokenType::Minus => self.emit_byte(OpCode::OpSubtract.into()),
+            TokenType::Star => self.emit_byte(OpCode::OpMultiply.into()),
+            TokenType::Slash => self.emit_byte(OpCode::OpDivide.into()),
+            _ => todo!()
+        }
+    }
+
     fn consume(&mut self, token_type: TokenType, message: &str) {
         if self.parser.current.token_type == token_type {
             self.advance();
