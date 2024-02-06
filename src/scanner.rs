@@ -10,7 +10,7 @@ pub struct Scanner {
 impl Scanner {
     pub fn new(source: String) -> Self {
         Self {
-            source,
+            source: source + "\0",
             start: 0,
             current: 0,
             line: 1,

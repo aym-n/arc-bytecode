@@ -25,7 +25,7 @@ fn repl(vm: &mut vm::VM) {
         std::io::stdin().read_line(&mut input).unwrap();
         input = input.trim_end_matches('\n').to_string();
 
-        //vm.interpret(input);
+        vm.interpret(input);
     }
 }
 

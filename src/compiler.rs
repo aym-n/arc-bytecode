@@ -117,7 +117,7 @@ impl<'a> Compiler<'a> {
     pub fn compile(&mut self, source: String) -> bool {
         self.scanner = Scanner::new(source);
         self.advance();
-        // self.expression();
+        self.expression();
         self.consume(TokenType::EOF, "Expect end of expression.");
         self.end_compiler();
         *self.parser.had_error.borrow()
@@ -145,6 +145,10 @@ impl<'a> Compiler<'a> {
 
     fn end_compiler(&mut self) {
         self.emit_return();
+
+        if !*self.parser.had_error.borrow() {
+            self.chunk.disassemble("code");
+        }
     }
 
     fn grouping(&mut self) {
