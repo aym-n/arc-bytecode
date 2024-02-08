@@ -4,7 +4,7 @@ use crate::compiler::*;
 pub struct VM {
     chunk: Chunk,
     ip: usize,
-    stack: Vec<Value>, // Stacks are implemented as Vecs in Rust
+    stack: Vec<Value>,
 }
 
 pub enum InterpretResult {
@@ -15,6 +15,10 @@ pub enum InterpretResult {
 
 macro_rules! BinaryOp {
     ($self:ident, $op:tt) => {
+        if !($self.peek(0).is_number() && $self.peek(1).is_number()) {
+            $self.runtime_error("Operands must be numbers.");
+            return InterpretResult::RuntimeError;
+        }
         let b = $self.stack.pop().unwrap();
         let a = $self.stack.pop().unwrap();
         $self.stack.push(a $op b);
@@ -42,6 +46,10 @@ impl VM {
         self.run(&chunk)
     }
 
+    fn peek(&self, distance: usize) -> Value {
+        self.stack[self.stack.len() - 1 - distance]
+    }
+
     fn run(&mut self, chunk: &Chunk) -> InterpretResult {
         loop {
             #[cfg(feature = "debug_trace_execution")]
@@ -65,6 +73,11 @@ impl VM {
                     self.stack.push(constant);
                 }
                 OpCode::OpNegate => {
+                    if !self.peek(0).is_number(){
+                        self.runtime_error("Operand must be a number.");
+                        return InterpretResult::RuntimeError;
+                    }
+
                     let value = self.stack.pop().unwrap();
                     self.stack.push(-value);
                 }
@@ -97,5 +110,14 @@ impl VM {
         let value = chunk.read(self.ip);
         self.ip += 1;
         chunk.get_constant(value)
+    }
+
+    fn runtime_error(&mut self, message: &str) {
+        println!("{}", message);
+        let instruction = self.ip - 1;
+        let line = self.chunk.lines[instruction];
+        println!("[line {}] in script", line);
+
+        self.stack.clear();
     }
 }

@@ -12,7 +12,7 @@ pub enum OpCode {
 
 pub struct Chunk {
     pub code: Vec<u8>,
-    lines: Vec<usize>,
+    pub lines: Vec<usize>,
     pub constants: ValueArray,
 }
 

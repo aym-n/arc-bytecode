@@ -8,6 +8,15 @@ pub enum Value{
     Nil,
 }
 
+impl Value {
+    pub fn is_number(&self) -> bool {
+        match self {
+            Value::Number(_) => true,
+            _ => false,
+        }
+    }
+}
+
 impl Add for Value {
     type Output = Self;
 
