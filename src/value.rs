@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub, Div, Mul, Neg};
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialOrd)]
 pub enum Value{
     Boolean(bool),
     Number(f64),
@@ -20,6 +20,17 @@ impl Value {
         match self {
             Value::Nil => true,
             Value::Boolean(false) => true,
+            _ => false,
+        }
+    }
+}
+
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Value::Boolean(a), Value::Boolean(b)) => a == b,
+            (Value::Number(a), Value::Number(b)) => a == b,
+            (Value::Nil, Value::Nil) => true,
             _ => false,
         }
     }

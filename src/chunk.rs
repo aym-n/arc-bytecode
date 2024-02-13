@@ -12,6 +12,9 @@ pub enum OpCode {
     OpTrue,
     OpFalse,
     OpNot,
+    OpEqual,
+    OpGreater,
+    OpLess,
 }
 
 pub struct Chunk {
@@ -84,6 +87,9 @@ impl Chunk {
             8 => self.simple_instruction("OpTrue", offset),
             9 => self.simple_instruction("OpFalse", offset),
             10 => self.simple_instruction("OpNot", offset),
+            11 => self.simple_instruction("OpEqual", offset),
+            12 => self.simple_instruction("OpGreater", offset),
+            13 => self.simple_instruction("OpLess", offset),
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1
@@ -123,6 +129,9 @@ impl From<u8> for OpCode {
             8 => OpCode::OpTrue,
             9 => OpCode::OpFalse,
             10 => OpCode::OpNot,
+            11 => OpCode::OpEqual,
+            12 => OpCode::OpGreater,
+            13 => OpCode::OpLess,
             _ => panic!("Unknown opcode {}", byte),
         }
     }

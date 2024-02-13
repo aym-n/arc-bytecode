@@ -25,6 +25,14 @@ macro_rules! BinaryOp {
     };
 }
 
+macro_rules! BinaryCompOp {
+    ($self:ident, $op:tt) => {
+        let b = $self.stack.pop().unwrap();
+        let a = $self.stack.pop().unwrap();
+        $self.stack.push(Value::Boolean(a $op b));
+    };
+}
+
 impl VM {
     pub fn new() -> Self {
         Self {
@@ -52,7 +60,6 @@ impl VM {
 
     fn run(&mut self, chunk: &Chunk) -> InterpretResult {
         loop {
-            #[cfg(feature = "debug_trace_execution")]
             {
                 print!("          ");
                 for slot in &self.stack {
@@ -106,6 +113,20 @@ impl VM {
                 OpCode::OpNot => {
                     let value = self.stack.pop().unwrap();
                     self.stack.push(Value::Boolean(value.is_falsey()));
+                }
+
+                OpCode::OpEqual => {
+                    let b = self.stack.pop().unwrap();
+                    let a = self.stack.pop().unwrap();
+                    self.stack.push(Value::Boolean(a == b));
+                }
+
+                OpCode::OpGreater => {
+                    BinaryCompOp!(self, >);
+                }
+
+                OpCode::OpLess => {
+                    BinaryCompOp!(self, <);
                 }
             }
         }

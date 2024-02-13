@@ -131,6 +131,43 @@ impl<'a> Compiler<'a> {
             precedence: Precedence::None,
         };
 
+        rules[TokenType::BangEqual as usize] = ParseRule {
+            prefix: None,
+            infix: Some(|c| c.binary()),
+            precedence: Precedence::Equality,
+        };
+
+        rules[TokenType::EqualEqual as usize] = ParseRule {
+            prefix: None,
+            infix: Some(|c| c.binary()),
+            precedence: Precedence::Equality,
+        };
+
+        rules[TokenType::Greater as usize] = ParseRule {
+            prefix: None,
+            infix: Some(|c| c.binary()),
+            precedence: Precedence::Comparison,
+        };
+
+        rules[TokenType::GreaterEqual as usize] = ParseRule {
+            prefix: None,
+            infix: Some(|c| c.binary()),
+            precedence: Precedence::Comparison,
+        };
+
+        rules[TokenType::Less as usize] = ParseRule {
+            prefix: None,
+            infix: Some(|c| c.binary()),
+            precedence: Precedence::Comparison,
+        };
+
+        rules[TokenType::LessEqual as usize] = ParseRule {
+            prefix: None,
+            infix: Some(|c| c.binary()),
+            precedence: Precedence::Comparison,
+        };
+
+
         Self {
             parser: Parser::default(),
             scanner: Scanner::new("".to_string()),
@@ -231,7 +268,7 @@ impl<'a> Compiler<'a> {
 
     fn emit_constant(&mut self, value: Value) {
         let constant = self.make_constant(value);
-        self.emit_bytes(OpCode::OpConstant, constant);
+        self.emit_bytes(OpCode::OpConstant.into(), constant);
     }
 
     fn make_constant(&mut self, value: Value) -> u8 {
@@ -276,6 +313,12 @@ impl<'a> Compiler<'a> {
             TokenType::Minus => self.emit_byte(OpCode::OpSubtract.into()),
             TokenType::Star => self.emit_byte(OpCode::OpMultiply.into()),
             TokenType::Slash => self.emit_byte(OpCode::OpDivide.into()),
+            TokenType::Greater => self.emit_byte(OpCode::OpGreater.into()),
+            TokenType::EqualEqual => self.emit_byte(OpCode::OpEqual.into()),
+            TokenType::Less => self.emit_byte(OpCode::OpLess.into()),
+            TokenType::BangEqual => self.emit_bytes(OpCode::OpEqual.into(), OpCode::OpNot.into()),
+            TokenType::GreaterEqual => self.emit_bytes(OpCode::OpLess.into(), OpCode::OpNot.into()),
+            TokenType::LessEqual => self.emit_bytes(OpCode::OpGreater.into(), OpCode::OpNot.into()),
             _ => todo!(),
         }
     }
@@ -292,8 +335,8 @@ impl<'a> Compiler<'a> {
         self.chunk.write(byte, self.parser.previous.line);
     }
 
-    fn emit_bytes(&mut self, byte1: OpCode, byte2: u8) {
-        self.emit_byte(byte1 as u8);
+    fn emit_bytes(&mut self, byte1: u8, byte2: u8) {
+        self.emit_byte(byte1);
         self.emit_byte(byte2);
     }
 }
