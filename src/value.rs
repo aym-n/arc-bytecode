@@ -15,6 +15,14 @@ impl Value {
             _ => false,
         }
     }
+
+    pub fn is_falsey(&self) -> bool {
+        match self {
+            Value::Nil => true,
+            Value::Boolean(false) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Add for Value {

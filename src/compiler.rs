@@ -107,6 +107,30 @@ impl<'a> Compiler<'a> {
             precedence: Precedence::None,
         };
 
+        rules[TokenType::False as usize] = ParseRule {
+            prefix: Some(|c| c.literal()),
+            infix: None,
+            precedence: Precedence::None,
+        };
+
+        rules[TokenType::True as usize] = ParseRule {
+            prefix: Some(|c| c.literal()),
+            infix: None,
+            precedence: Precedence::None,
+        };
+
+        rules[TokenType::Nil as usize] = ParseRule {
+            prefix: Some(|c| c.literal()),
+            infix: None,
+            precedence: Precedence::None,
+        };
+
+        rules[TokenType::Bang as usize] = ParseRule {
+            prefix: Some(|c| c.unary()),
+            infix: None,
+            precedence: Precedence::None,
+        };
+
         Self {
             parser: Parser::default(),
             scanner: Scanner::new("".to_string()),
@@ -162,6 +186,7 @@ impl<'a> Compiler<'a> {
         self.parse_precedence(Precedence::Unary);
 
         match operator_type {
+            TokenType::Bang => self.emit_byte(OpCode::OpNot.into()),
             TokenType::Minus => self.emit_byte(OpCode::OpNegate.into()),
             _ => {}
         }
@@ -193,6 +218,15 @@ impl<'a> Compiler<'a> {
     fn number(&mut self) {
         let value = self.parser.previous.lexeme.parse::<f64>().unwrap();
         self.emit_constant(Value::Number(value));
+    }
+
+    fn literal(&mut self) {
+        match self.parser.previous.token_type {
+            TokenType::False => self.emit_byte(OpCode::OpFalse.into()),
+            TokenType::True => self.emit_byte(OpCode::OpTrue.into()),
+            TokenType::Nil => self.emit_byte(OpCode::OpNil.into()),
+            _ => return,
+        }
     }
 
     fn emit_constant(&mut self, value: Value) {

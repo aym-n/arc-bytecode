@@ -1,6 +1,6 @@
 use crate::chunk::*;
-use crate::value::*;
 use crate::compiler::*;
+use crate::value::*;
 pub struct VM {
     chunk: Chunk,
     ip: usize,
@@ -65,7 +65,7 @@ impl VM {
             let instruction = self.read_byte(chunk);
             match instruction {
                 OpCode::OpReturn => {
-                    println!("{}", self.stack.pop().unwrap());
+                    println!("{}", self.stack.pop().unwrap_or(Value::Number(0f64)));
                     return InterpretResult::Ok;
                 }
                 OpCode::OpConstant => {
@@ -73,7 +73,7 @@ impl VM {
                     self.stack.push(constant);
                 }
                 OpCode::OpNegate => {
-                    if !self.peek(0).is_number(){
+                    if !self.peek(0).is_number() {
                         self.runtime_error("Operand must be a number.");
                         return InterpretResult::RuntimeError;
                     }
@@ -95,6 +95,17 @@ impl VM {
 
                 OpCode::OpDivide => {
                     BinaryOp!(self, /);
+                }
+
+                OpCode::OpNil => self.stack.push(Value::Nil),
+
+                OpCode::OpTrue => self.stack.push(Value::Boolean(true)),
+
+                OpCode::OpFalse => self.stack.push(Value::Boolean(false)),
+
+                OpCode::OpNot => {
+                    let value = self.stack.pop().unwrap();
+                    self.stack.push(Value::Boolean(value.is_falsey()));
                 }
             }
         }
