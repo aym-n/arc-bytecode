@@ -1,10 +1,11 @@
 use std::ops::{Add, Sub, Div, Mul, Neg};
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Copy, PartialOrd)]
+#[derive(Clone, PartialOrd)]
 pub enum Value{
     Boolean(bool),
     Number(f64),
+    Str(String),
     Nil,
 }
 
@@ -23,6 +24,10 @@ impl Value {
             _ => false,
         }
     }
+
+    pub fn is_string(&self) -> bool {
+        matches!(self, Value::Str(_))
+    }
 }
 
 impl PartialEq for Value {
@@ -31,7 +36,8 @@ impl PartialEq for Value {
             (Value::Boolean(a), Value::Boolean(b)) => a == b,
             (Value::Number(a), Value::Number(b)) => a == b,
             (Value::Nil, Value::Nil) => true,
-            _ => false,
+            (Value::Str(a), Value::Str(b)) => a == b,
+            _ => panic!(),
         }
     }
 }
@@ -99,6 +105,7 @@ impl Display for Value {
             Value::Boolean(b) => write!(f, "{b}"),
             Value::Number(n) => write!(f, "{n}"),
             Value::Nil => write!(f, "nil"),
+            Value::Str(s) => write!(f, "{s}"),
         }
     }
 }

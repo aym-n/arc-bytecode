@@ -16,9 +16,10 @@ pub enum InterpretResult {
 macro_rules! BinaryOp {
     ($self:ident, $op:tt) => {
         if !($self.peek(0).is_number() && $self.peek(1).is_number()) {
-            $self.runtime_error("Operands must be numbers.");
+            $self.runtime_error("Operands must be two numbers.");
             return InterpretResult::RuntimeError;
         }
+
         let b = $self.stack.pop().unwrap();
         let a = $self.stack.pop().unwrap();
         $self.stack.push(a $op b);
@@ -55,7 +56,7 @@ impl VM {
     }
 
     fn peek(&self, distance: usize) -> Value {
-        self.stack[self.stack.len() - 1 - distance]
+        self.stack[self.stack.len() - 1 - distance].clone()
     }
 
     fn run(&mut self, chunk: &Chunk) -> InterpretResult {
@@ -89,7 +90,15 @@ impl VM {
                     self.stack.push(-value);
                 }
                 OpCode::OpAdd => {
-                    BinaryOp!(self, +);
+                    if self.peek(0).is_string() && self.peek(1).is_string() {
+                        let b = self.stack.pop().unwrap();
+                        let a = self.stack.pop().unwrap();
+                        let a = a.to_string();
+                        let b = b.to_string();
+                        self.stack.push(Value::Str(format!("{}{}", a, b)));
+                    } else {
+                        BinaryOp!(self, +);
+                    }
                 }
 
                 OpCode::OpSubtract => {
@@ -116,8 +125,8 @@ impl VM {
                 }
 
                 OpCode::OpEqual => {
-                    let b = self.stack.pop().unwrap();
-                    let a = self.stack.pop().unwrap();
+                    let b = self.stack.pop();
+                    let a = self.stack.pop();
                     self.stack.push(Value::Boolean(a == b));
                 }
 

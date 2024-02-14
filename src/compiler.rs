@@ -167,6 +167,12 @@ impl<'a> Compiler<'a> {
             precedence: Precedence::Comparison,
         };
 
+        rules[TokenType::String as usize] = ParseRule {
+            prefix: Some(|c| c.string()),
+            infix: None,
+            precedence: Precedence::None,
+        };
+
 
         Self {
             parser: Parser::default(),
@@ -264,6 +270,12 @@ impl<'a> Compiler<'a> {
             TokenType::Nil => self.emit_byte(OpCode::OpNil.into()),
             _ => return,
         }
+    }
+
+    fn string(&mut self) {
+        let len = self.parser.previous.lexeme.len() - 1;
+        let string = self.parser.previous.lexeme[1..len].to_string();
+        self.emit_constant(Value::Str(string));
     }
 
     fn emit_constant(&mut self, value: Value) {
