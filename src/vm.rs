@@ -73,7 +73,6 @@ impl VM {
             let instruction = self.read_byte(chunk);
             match instruction {
                 OpCode::OpReturn => {
-                    println!("{}", self.stack.pop().unwrap_or(Value::Number(0f64)));
                     return InterpretResult::Ok;
                 }
                 OpCode::OpConstant => {
@@ -136,6 +135,10 @@ impl VM {
 
                 OpCode::OpLess => {
                     BinaryCompOp!(self, <);
+                }
+
+                OpCode::OpPrint => {
+                    println!("{}", self.stack.pop().unwrap());
                 }
             }
         }

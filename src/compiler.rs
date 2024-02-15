@@ -1,5 +1,6 @@
 use crate::chunk::*;
 use crate::scanner::*;
+use crate::token;
 use crate::token::*;
 use crate::value::*;
 use std::cell::RefCell;
@@ -184,10 +185,21 @@ impl<'a> Compiler<'a> {
     pub fn compile(&mut self, source: String) -> bool {
         self.scanner = Scanner::new(source);
         self.advance();
-        self.expression();
-        self.consume(TokenType::EOF, "Expect end of expression.");
+
+        while !self.matches(TokenType::EOF) {
+            self.declaration();
+        }
+
         self.end_compiler();
         *self.parser.had_error.borrow()
+    }
+
+    fn matches(&mut self, token_type: TokenType) -> bool {
+        if !(self.parser.current.token_type == token_type){
+            return false;
+        }   
+        self.advance();
+        true
     }
 
     pub fn advance(&mut self) {
@@ -256,6 +268,22 @@ impl<'a> Compiler<'a> {
     }
     fn expression(&mut self) {
         self.parse_precedence(Precedence::Assignment);
+    }
+
+    fn declaration(&mut self){
+        self.statement();
+    }
+
+    fn statement(&mut self) {
+        if self.matches(TokenType::Print) {
+            self.print_statement();
+        }
+    }
+
+    fn print_statement(&mut self) {
+        self.expression();
+        self.consume(TokenType::Semicolon, "Expect ';' after value.");
+        self.emit_byte(OpCode::OpPrint.into());
     }
 
     fn number(&mut self) {

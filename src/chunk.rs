@@ -15,6 +15,7 @@ pub enum OpCode {
     OpEqual,
     OpGreater,
     OpLess,
+    OpPrint,
 }
 
 pub struct Chunk {
@@ -90,6 +91,7 @@ impl Chunk {
             11 => self.simple_instruction("OpEqual", offset),
             12 => self.simple_instruction("OpGreater", offset),
             13 => self.simple_instruction("OpLess", offset),
+            14 => self.simple_instruction("OpPrint", offset),
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1
@@ -132,6 +134,7 @@ impl From<u8> for OpCode {
             11 => OpCode::OpEqual,
             12 => OpCode::OpGreater,
             13 => OpCode::OpLess,
+            14 => OpCode::OpPrint,
             _ => panic!("Unknown opcode {}", byte),
         }
     }
