@@ -277,7 +277,15 @@ impl<'a> Compiler<'a> {
     fn statement(&mut self) {
         if self.matches(TokenType::Print) {
             self.print_statement();
+        }else{
+            self.expression_statement();
         }
+    }
+
+    fn expression_statement(&mut self){
+        self.expression();
+        self.consume(TokenType::Semicolon, "Expect ; after Expression");
+        self.emit_byte(OpCode::OpPop.into());
     }
 
     fn print_statement(&mut self) {

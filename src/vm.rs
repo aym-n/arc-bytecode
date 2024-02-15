@@ -140,6 +140,10 @@ impl VM {
                 OpCode::OpPrint => {
                     println!("{}", self.stack.pop().unwrap());
                 }
+
+                OpCode::OpPop => {
+                    self.stack.pop();
+                }
             }
         }
     }
