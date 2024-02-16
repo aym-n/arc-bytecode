@@ -1,10 +1,12 @@
 use crate::chunk::*;
 use crate::compiler::*;
 use crate::value::*;
+use std::collections::HashMap;
 pub struct VM {
     chunk: Chunk,
     ip: usize,
     stack: Vec<Value>,
+    globals: HashMap<String, Value>,
 }
 
 pub enum InterpretResult {
@@ -40,11 +42,14 @@ impl VM {
             chunk: Chunk::new(),
             ip: 0,
             stack: Vec::new(),
+            globals: HashMap::new(),
         }
     }
 
     pub fn free(&mut self) {
         self.chunk.free();
+        self.stack.clear();
+        self.globals.clear();
     }
 
     pub fn interpret(&mut self, source: String) -> InterpretResult {
@@ -144,8 +149,19 @@ impl VM {
                 OpCode::OpPop => {
                     self.stack.pop();
                 }
+
+                OpCode::OpDefineGlobal => {
+                    let name = self.read_string();
+                    table_set(&mut self.globals, name, self.peek(0));
+                    self.stack.pop();
+                }
             }
         }
+    }
+
+    fn read_string(&mut self) -> String {
+        let value = self.read_constant(&self.chunk);
+        value.to_string()
     }
 
     fn read_byte(&mut self, chunk: &Chunk) -> OpCode {

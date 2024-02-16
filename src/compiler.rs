@@ -279,11 +279,42 @@ impl<'a> Compiler<'a> {
     }
 
     fn declaration(&mut self) {
-        self.statement();
-
+        if self.matches(TokenType::Var){
+            self.var_declaration();
+        } else {
+            self.statement();
+        }
         if *self.parser.panic_mode.borrow() {
             self.synchronize();
         }
+    }
+
+    fn var_declaration(&self){
+        let global = self.parse_variable("Expect variable name.");
+
+        if self.matches(TokenType::Equal){
+            self.expression();
+        }else{
+            self.emit_byte(OpCode::OpNil.into());
+        }
+
+        self.consume(TokenType::Semicolon, "Expect ; after variable declaration");
+        self.define_variable(global);
+    }
+
+    fn parse_variable(&self, message: &str) -> u8 {
+        self.consume(TokenType::Identifier, message);
+        return self.identifier_constant(self.parser.previous);
+    }
+
+    fn identifier_constant(&self, token: Token) -> u8 {
+        let len = self.parser.previous.lexeme.len() - 1;
+        let string = self.parser.previous.lexeme[1..len].to_string();
+        return self.make_constant(Value::Str(string));
+    }
+
+    fn define_variable(&self, global: u8){
+        self.emit_bytes(OpCode::OpDefineGlobal.into(), global);
     }
 
     fn synchronize(&mut self) {
