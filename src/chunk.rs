@@ -18,6 +18,7 @@ pub enum OpCode {
     OpPrint,
     OpPop,
     OpDefineGlobal,
+    OpGetGlobal,
 }
 
 pub struct Chunk {
@@ -96,6 +97,7 @@ impl Chunk {
             14 => self.simple_instruction("OpPrint", offset),
             15 => self.simple_instruction("OpPop", offset),
             16 => self.constant_instruction("OpDefineGlobal", offset),
+            17 => self.simple_instruction("OpGetGlobal", offset),
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1
@@ -116,8 +118,8 @@ impl Chunk {
         offset + 2
     }
 
-    pub fn get_constant(&self, index: u8) -> Value {
-        self.constants.values[index as usize].clone()
+    pub fn get_constant(&self, index: usize) -> Value {
+        self.constants.values[index].clone()
     }
 }
 
@@ -141,6 +143,7 @@ impl From<u8> for OpCode {
             14 => OpCode::OpPrint,
             15 => OpCode::OpPop,
             16 => OpCode::OpDefineGlobal,
+            17 => OpCode::OpGetGlobal,
             _ => panic!("Unknown opcode {}", byte),
         }
     }

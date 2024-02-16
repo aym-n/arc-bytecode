@@ -174,6 +174,12 @@ impl<'a> Compiler<'a> {
             precedence: Precedence::None,
         };
 
+        rules[TokenType::Identifier as usize] = ParseRule {
+            prefix: Some(|c| c.variable()),
+            infix: None,
+            precedence: Precedence::None,
+        };
+
         Self {
             parser: Parser::default(),
             scanner: Scanner::new("".to_string()),
@@ -289,12 +295,22 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn var_declaration(&self){
+    fn named_variable(&mut self, name: &Token) {
+        let arg = self.identifier_constant(name);
+        self.emit_bytes(OpCode::OpGetGlobal.into(), arg);
+    }
+
+    fn variable(&mut self) {
+        let name = self.parser.previous.clone();
+        self.named_variable(&name);
+    }
+
+    fn var_declaration(&mut self) {
         let global = self.parse_variable("Expect variable name.");
 
-        if self.matches(TokenType::Equal){
+        if self.matches(TokenType::Equal) {
             self.expression();
-        }else{
+        } else {
             self.emit_byte(OpCode::OpNil.into());
         }
 
@@ -302,18 +318,17 @@ impl<'a> Compiler<'a> {
         self.define_variable(global);
     }
 
-    fn parse_variable(&self, message: &str) -> u8 {
+    fn parse_variable(&mut self, message: &str) -> u8 {
         self.consume(TokenType::Identifier, message);
-        return self.identifier_constant(self.parser.previous);
+        let token =self.parser.previous.clone();
+        return self.identifier_constant(&token);
     }
 
-    fn identifier_constant(&self, token: Token) -> u8 {
-        let len = self.parser.previous.lexeme.len() - 1;
-        let string = self.parser.previous.lexeme[1..len].to_string();
-        return self.make_constant(Value::Str(string));
+    fn identifier_constant(&mut self, token: &Token) -> u8 {
+        self.make_constant(Value::Str(token.lexeme.clone()))
     }
 
-    fn define_variable(&self, global: u8){
+    fn define_variable(&mut self, global: u8) {
         self.emit_bytes(OpCode::OpDefineGlobal.into(), global);
     }
 

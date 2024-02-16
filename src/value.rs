@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub, Div, Mul, Neg};
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone, PartialOrd)]
+#[derive(Clone, PartialOrd, Debug)]
 pub enum Value{
     Boolean(bool),
     Number(f64),

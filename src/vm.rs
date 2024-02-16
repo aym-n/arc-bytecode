@@ -1,3 +1,4 @@
+use crate::chunk;
 use crate::chunk::*;
 use crate::compiler::*;
 use crate::value::*;
@@ -77,11 +78,35 @@ impl VM {
 
             let instruction = self.read_byte(chunk);
             match instruction {
+                OpCode::OpDefineGlobal => {
+                    let constant = self.read_constant().clone();
+                    if let Value::Str(s) = constant {
+                        let p = self.stack.pop().unwrap();
+                        println!("Inserting {} into globals {}", s, p);
+                        self.globals.insert(s, p.clone());
+                    } else {
+                        panic!("Unable to read constant from table");
+                    }
+                }
+
+                OpCode::OpGetGlobal => {
+                    let constant = self.read_constant().clone();
+                    if let Value::Str(s) = constant {
+                        if let Some(v) = self.globals.get(&s) {
+                            self.stack.push(v.clone())
+                        } else {
+                            return InterpretResult::RuntimeError;
+                        }
+                    } else {
+                        panic!("Unable to read constant from table");
+                    }
+                }
+                
                 OpCode::OpReturn => {
                     return InterpretResult::Ok;
                 }
                 OpCode::OpConstant => {
-                    let constant = self.read_constant(chunk);
+                    let constant = self.read_constant();
                     self.stack.push(constant);
                 }
                 OpCode::OpNegate => {
@@ -149,19 +174,12 @@ impl VM {
                 OpCode::OpPop => {
                     self.stack.pop();
                 }
-
-                OpCode::OpDefineGlobal => {
-                    let name = self.read_string();
-                    table_set(&mut self.globals, name, self.peek(0));
-                    self.stack.pop();
-                }
             }
         }
     }
 
-    fn read_string(&mut self) -> String {
-        let value = self.read_constant(&self.chunk);
-        value.to_string()
+    fn read_string(&mut self, chunk: &Chunk) -> String {
+        self.read_constant().to_string()
     }
 
     fn read_byte(&mut self, chunk: &Chunk) -> OpCode {
@@ -170,10 +188,10 @@ impl VM {
         value.into()
     }
 
-    fn read_constant(&mut self, chunk: &Chunk) -> Value {
-        let value = chunk.read(self.ip);
+    fn read_constant(&mut self) -> Value {
+        let value = self.chunk.read(self.ip) as usize;
         self.ip += 1;
-        chunk.get_constant(value)
+        self.chunk.get_constant(value)
     }
 
     fn runtime_error(&mut self, message: &str) {
