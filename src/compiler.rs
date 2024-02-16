@@ -174,7 +174,6 @@ impl<'a> Compiler<'a> {
             precedence: Precedence::None,
         };
 
-
         Self {
             parser: Parser::default(),
             scanner: Scanner::new("".to_string()),
@@ -195,9 +194,9 @@ impl<'a> Compiler<'a> {
     }
 
     fn matches(&mut self, token_type: TokenType) -> bool {
-        if !(self.parser.current.token_type == token_type){
+        if !(self.parser.current.token_type == token_type) {
             return false;
-        }   
+        }
         self.advance();
         true
     }
@@ -248,12 +247,21 @@ impl<'a> Compiler<'a> {
     }
     fn parse_precedence(&mut self, precedence: Precedence) {
         self.advance();
-        if let Some(prefix_rule) = self.get_rule(self.parser.previous.token_type.clone()).prefix {
+        if let Some(prefix_rule) = self
+            .get_rule(self.parser.previous.token_type.clone())
+            .prefix
+        {
             prefix_rule(self);
 
-            while precedence <= self.get_rule(self.parser.current.token_type.clone()).precedence {
+            while precedence
+                <= self
+                    .get_rule(self.parser.current.token_type.clone())
+                    .precedence
+            {
                 self.advance();
-                if let Some(infix_rule) = self.get_rule(self.parser.previous.token_type.clone()).infix {
+                if let Some(infix_rule) =
+                    self.get_rule(self.parser.previous.token_type.clone()).infix
+                {
                     infix_rule(self);
                 }
             }
@@ -270,15 +278,15 @@ impl<'a> Compiler<'a> {
         self.parse_precedence(Precedence::Assignment);
     }
 
-    fn declaration(&mut self){
+    fn declaration(&mut self) {
         self.statement();
 
-        if self.parser.panic_mode {
+        if *self.parser.panic_mode.borrow() {
             self.synchronize();
         }
     }
 
-    fn synchronize(&mut self){
+    fn synchronize(&mut self) {
         self.parser.panic_mode.replace(false);
 
         while self.parser.current.token_type != TokenType::EOF {
@@ -288,7 +296,7 @@ impl<'a> Compiler<'a> {
 
             match self.parser.current.token_type {
                 TokenType::Class
-                | TokenType::Fun
+                | TokenType::Fn
                 | TokenType::Var
                 | TokenType::For
                 | TokenType::If
@@ -296,19 +304,20 @@ impl<'a> Compiler<'a> {
                 | TokenType::Print
                 | TokenType::Return => return,
                 _ => {}
+            }
+            self.advance();
         }
-        self.advance();
     }
 
     fn statement(&mut self) {
         if self.matches(TokenType::Print) {
             self.print_statement();
-        }else{
+        } else {
             self.expression_statement();
         }
     }
 
-    fn expression_statement(&mut self){
+    fn expression_statement(&mut self) {
         self.expression();
         self.consume(TokenType::Semicolon, "Expect ; after Expression");
         self.emit_byte(OpCode::OpPop.into());
