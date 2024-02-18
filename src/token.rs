@@ -20,7 +20,7 @@ impl PartialEq for Token {
     }
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum TokenType {
     LeftParen = 0,
     RightParen,

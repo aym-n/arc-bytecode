@@ -19,6 +19,7 @@ pub enum OpCode {
     OpPop,
     OpDefineGlobal,
     OpGetGlobal,
+    OpSetGlobal
 }
 
 pub struct Chunk {
@@ -98,6 +99,7 @@ impl Chunk {
             15 => self.simple_instruction("OpPop", offset),
             16 => self.constant_instruction("OpDefineGlobal", offset),
             17 => self.simple_instruction("OpGetGlobal", offset),
+            18 => self.constant_instruction("OpSetGlobal", offset),
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1
@@ -144,6 +146,7 @@ impl From<u8> for OpCode {
             15 => OpCode::OpPop,
             16 => OpCode::OpDefineGlobal,
             17 => OpCode::OpGetGlobal,
+            18 => OpCode::OpSetGlobal,
             _ => panic!("Unknown opcode {}", byte),
         }
     }

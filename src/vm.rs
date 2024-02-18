@@ -101,6 +101,17 @@ impl VM {
                         panic!("Unable to read constant from table");
                     }
                 }
+
+                OpCode::OpSetGlobal => {
+                    let constant = self.read_constant().clone();
+                    if let Value::Str(s) = constant {
+                        let p = self.stack.pop().unwrap();
+                        println!("Inserting {} into globals {}", s, p);
+                        self.globals.insert(s, p.clone());
+                    } else {
+                        panic!("Unable to read constant from table");
+                    }
+                }
                 
                 OpCode::OpReturn => {
                     return InterpretResult::Ok;
